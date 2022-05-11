@@ -48,6 +48,7 @@ if not pathlib.Path("datos.csv").exists():
 df = pd.read_csv(file,  index_col=0)
 conteo = pd.read_csv("num_carreras.txt")
 
+
 def crear_registro(nombre):
     with open(nombre+".csv", 'x+') as k:
         k.write("Posición,Velocidad Media,Velocidad Max")
@@ -59,9 +60,9 @@ def crear_registro(nombre):
 def generar_posiciones(n_carreras, n_pilotos):
     carreras = []
     for _ in range(n_carreras):
-        Posicións = [num + 1 for num in range(n_pilotos)]
-        random.shuffle(Posicións)
-        carreras.append(Posicións)
+        Posiciones = [num + 1 for num in range(n_pilotos)]
+        random.shuffle(Posiciones)
+        carreras.append(Posiciones)
 
     return carreras
 
@@ -133,76 +134,104 @@ with open("num_carreras.txt", "r") as f:
     string = f.read()
     carrera = int(string)
 
-while opcion != 6:
+
+def cargar_piloto(nombre_piloto):
+    return pd.read_csv(nombre_piloto + ".csv", index_col=0)
+
+
+def pedir_piloto(msg, df_):
+    while True:
+        nombre_piloto = input(msg)
+
+        if nombre_piloto == "terminar":
+            return "terminar"
+
+        if nombre_piloto.isdecimal():
+            print("Detectado índice de piloto")
+            if df_.loc[int(nombre_piloto)].empty:
+                print("Error: Ingrese un índice válido")
+            else:
+                nombre_piloto = df_.loc[int(nombre_piloto)]["Piloto"]
+                break
+
+        if df_.loc[df_['Piloto'] == nombre_piloto].empty:
+            print("Error: Ingrese un piloto válido")
+        else:
+            break
+
+    return nombre_piloto
+
+
+def pedir_stat(msg, df_):
+    while True:
+        try:
+            nombre_stat = input(msg)
+
+            if nombre_stat == "terminar":
+                return "terminar"
+
+            _ = df_[nombre_stat].to_list()
+            return nombre_stat
+        except:
+            print("Ingresa el nombre de una estadística válida")
+
+
+
+while opcion != 4:
     print("Menu de opciones: \n"
           "    1. Consultar estadísticas\n"
-          "    2. Graficar estadísticas\n"
-          "    3. Comparar entre dos pilotos"
-          "    4. Agregar datos de nueva carrera\n"
-          "    5. Eliminar todo\n"
-          "    6. Salir\n"
+          "    2. Agregar datos de nueva carrera\n"
+          "    3. Eliminar todo\n"
+          "    4. Salir\n"
     )
 
     opcion = try_int("Ingrese una opción: ")
 
     if opcion == 1:
         print(df)
-        
-        while True:
-            nombre = input("Ingrese el nombre o id del piloto del que desea graficar sus estadísticas: ")
 
-            if nombre.isdecimal():
-                print("Detectado índice de piloto")
-                if df.loc[int(nombre)].empty:
-                    print("Error: Ingrese un índice válido")
-                else:
-                    nombre = df.loc[int(nombre)]["Piloto"]
+        print("Selección de pilotos:\n"
+              "Ingrese el nombre de los pilotos que desee o 'terminar' para continuar")
+
+        df_pilotos = []
+        while True:
+            piloto = pedir_piloto("Ingrese el nombre o id del piloto: ", df)
+
+            if piloto == "terminar":
+                break
+
+            df_pilotos += [(piloto, cargar_piloto(piloto))]
+
+        if not df_pilotos:
+            exit(0)
+
+        for piloto in df_pilotos:
+            print(piloto[0])
+            print(piloto[1])
+
+        if input("Deseas graficar una estadística en específico: [si|no]").lower() == "si":
+            print("Selección de stats:\n"
+                  "Ingrese el nombre de las estadísticas que desee graficar o 'terminar' para continuar")
+
+            df_stats = []
+            while True:
+                stat = pedir_stat("Ingrese una estadística a graficar: ", df_pilotos[0][1])
+
+                if stat == "terminar":
                     break
 
-            if df.loc[df['Piloto'] == nombre].empty:
-                print("Error: Ingrese un piloto válido")
-            else:
-                break
-            
-        df_piloto = pd.read_csv(nombre + ".csv", index_col=0)
-        print(df_piloto)
-    if opcion == 2:
-        print(df)
-        
-        while True:
-            nombre = input("Ingrese el nombre o id del piloto del que desea graficar sus estadísticas: ")
+                df_stats += [stat]
 
-            if nombre.isdecimal():
-                print("Detectado índice de piloto")
-                if df.loc[int(nombre)].empty:
-                    print("Error: Ingrese un índice válido")
-                else:
-                    nombre = df.loc[int(nombre)]["Piloto"]
-                    break
+            carreras = list(range(1, carrera + 1))
 
-            if df.loc[df['Piloto'] == nombre].empty:
-                print("Error: Ingrese un piloto válido")
-            else:
-                break
+            if not df_stats:
+                exit(0)
 
-        df_piloto = pd.read_csv(nombre + ".csv", index_col=0)
-        
-        #df_piloto2 = pd.read_csv("Phyllis Echevarria.csv", index_col=0)
-        print(df_piloto)
-        fig, ax= plt.subplots()
+            for stat in df_stats:
+                fig, ax = plt.subplots()
+                for piloto in df_pilotos:
+                    ax.plot(carreras, piloto[1][stat].to_list())
 
-
-        while True:
-            try:
-                stat = input("Ingrese la estadística a graficar [Posición|Velocidad Media|Velocidad Max]: ")
-                posiciones = df_piloto[stat].to_list()
-                break
-            except:
-                print("Ingresa el nombre de una estadística válida")
-        #posiciones2 = df_piloto2["Posición"].to_list()
-        carreras = list(range(1, carrera+1))
-        ax.plot(carreras, posiciones)
-        #ax.plot(carreras, posiciones2)
-        ax.set_title(stat, loc='center', fontdict = {'fontsize':14, 'fontweight':'bold', 'color':'tab:blue'})
-        plt.show()
+                ax.set_title(stat, loc='center', fontdict={'fontsize': 14, 'fontweight': 'bold', 'color': 'tab:blue'})
+                plt.show()
 
