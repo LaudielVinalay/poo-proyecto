@@ -1,4 +1,3 @@
-from os import truncate
 import pathlib
 import random
 
@@ -21,9 +20,9 @@ def get_pilotos():
 
 
 def agregar_carrera():
-    piloto = input("Ingrese el nombre del piloto: ")
+    nombre_piloto = input("Ingrese el nombre del piloto: ")
 
-    if piloto not in get_pilotos():
+    if nombre_piloto not in get_pilotos():
         print("Error: El piloto no existe")
 
 
@@ -33,7 +32,7 @@ if file.replace("\n", "").replace(" ", "") == "":
     file = "datos.csv"
 
 df = None
-primer_corrida = False
+primer_ejecucion = False
 
 if not pathlib.Path("datos.csv").exists():
     with open("datos.csv", "x+") as f, open("num_carreras.txt", "x+") as g:
@@ -43,45 +42,44 @@ if not pathlib.Path("datos.csv").exists():
 
         f.close()
         g.close()
-        primer_corrida = True
+        primer_ejecucion = True
 
-df = pd.read_csv(file,  index_col=0)
+df = pd.read_csv(file, index_col=0)
 conteo = pd.read_csv("num_carreras.txt")
 
 
-def crear_registro(nombre):
-    with open(nombre+".csv", 'x+') as k:
+def crear_registro(nombre_piloto):
+    with open(nombre_piloto + ".csv", 'x+') as k:
         k.write("Posición,Velocidad Media,Velocidad Max")
         k.close()
 
-        return pd.read_csv(nombre+".csv")
+        return pd.read_csv(nombre_piloto + ".csv")
 
 
 def generar_posiciones(n_carreras, n_pilotos):
-    carreras = []
+    posiciones_cada_carrera = []
     for _ in range(n_carreras):
-        Posiciones = [num + 1 for num in range(n_pilotos)]
-        random.shuffle(Posiciones)
-        carreras.append(Posiciones)
+        posiciones = [num + 1 for num in range(n_pilotos)]
+        random.shuffle(posiciones)
+        posiciones_cada_carrera.append(posiciones)
 
-    return carreras
+    return posiciones_cada_carrera
 
 
 def generar_velocidades(n_carreras, n_pilotos):
-    velocidades = []
+    velocidades_cada_carrera = []
     for _ in range(n_carreras):
         velocidades_de_carrera = [random.randrange(150, 250) for _ in range(n_pilotos)]
         velocidades_de_carrera.sort()
-        velocidades.append(velocidades_de_carrera)
+        velocidades_cada_carrera.append(velocidades_de_carrera)
 
-    return velocidades
+    return velocidades_cada_carrera
 
 
-if primer_corrida:
-    global carrera
+if primer_ejecucion:
     print("Warning: Primera ejecución del programa detectada!")
 
-    carrera: int = try_int("Ingrese el número de carreras que va a registrar por piloto: ")
+    carrera = try_int("Ingrese el número de carreras que va a registrar por piloto: ")
 
     with open("num_carreras.txt", "w") as f:
         f.truncate(0)
@@ -90,13 +88,12 @@ if primer_corrida:
 
         f.close()
 
-
     num_pilotos = input("Ingrese el número de pilotos que desea generar aleatoriamente [default: rand]: ")
 
     if num_pilotos.isalnum():
         num_pilotos = int(num_pilotos)
     else:
-        num_pilotos = random.randint(5,20)
+        num_pilotos = random.randint(5, 20)
 
     posiciones_carreras = generar_posiciones(carrera, num_pilotos)
     velocidades_carreras = generar_velocidades(carrera, num_pilotos)
@@ -108,21 +105,24 @@ if primer_corrida:
         promedio_velocidad_carrera = 0
         promedio_posicion = 0
         for j in range(carrera):
-
             promedio_posicion += posiciones_carreras[j][i]
-            promedio_velocidad_carrera += velocidades_carreras[j][posiciones_carreras[j][i]-1]
+            promedio_velocidad_carrera += velocidades_carreras[j][posiciones_carreras[j][i] - 1]
             df_piloto = pd.concat([df_piloto, pd.DataFrame({
-                    "Velocidad Media": [velocidades_carreras[j][posiciones_carreras[j][i]-1]],
-                    "Posición": [posiciones_carreras[j][i]],
-                    "Velocidad Max": [velocidades_carreras[j][posiciones_carreras[j][i]-1] + random.randrange(10,25)]
-                }, index=[j+1])])
+                "Velocidad Media": [velocidades_carreras[j][posiciones_carreras[j][i] - 1]],
+                "Posición": [posiciones_carreras[j][i]],
+                "Velocidad Max": [velocidades_carreras[j][posiciones_carreras[j][i] - 1] + random.randrange(10, 25)]
+            }, index=[j + 1])])
 
-        df = pd.concat([df, pd.DataFrame({
-            "Piloto": [nombre],
-            "Pos Promedio": promedio_posicion/carrera,
-            "Vel Promedio": promedio_velocidad_carrera/carrera
-            }
-            , index=[i+1])]
+        df = pd.concat(
+            [
+                df,
+                pd.DataFrame(
+                    {
+                        "Piloto": [nombre],
+                        "Pos Promedio": promedio_posicion / carrera,
+                        "Vel Promedio": promedio_velocidad_carrera / carrera
+                    }, index=[i + 1])
+             ]
         )
 
         df_piloto.to_csv(nombre + ".csv")
@@ -182,7 +182,7 @@ while opcion != 4:
           "    2. Agregar datos de nueva carrera\n"
           "    3. Eliminar todo\n"
           "    4. Salir\n"
-    )
+          )
 
     opcion = try_int("Ingrese una opción: ")
 
@@ -234,4 +234,3 @@ while opcion != 4:
                 ax.set_title(stat, loc='center', fontdict={'fontsize': 14, 'fontweight': 'bold', 'color': 'tab:blue'})
                 plt.legend()
                 plt.show()
-
