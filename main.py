@@ -176,7 +176,6 @@ def pedir_stat(msg, df_):
             print("Ingresa el nombre de una estadística válida")
 
 
-
 while opcion != 4:
     print("Menu de opciones: \n"
           "    1. Consultar estadísticas\n"
@@ -230,8 +229,9 @@ while opcion != 4:
             for stat in df_stats:
                 fig, ax = plt.subplots()
                 for piloto in df_pilotos:
-                    ax.plot(carreras, piloto[1][stat].to_list())
+                    ax.plot(carreras, piloto[1][stat].to_list(), label=piloto[0])
 
                 ax.set_title(stat, loc='center', fontdict={'fontsize': 14, 'fontweight': 'bold', 'color': 'tab:blue'})
+                plt.legend()
                 plt.show()
 
