@@ -1,3 +1,4 @@
+from os import truncate
 import pathlib
 import random
 
@@ -35,10 +36,9 @@ df = None
 primer_corrida = False
 
 if not pathlib.Path("datos.csv").exists():
-    with open("datos.csv", "x+") as f, open("Conteo.csv", "x+") as g:
+    with open("datos.csv", "x+") as f, open("num_carreras.txt", "x+") as g:
         f.write("Piloto")
 
-        g.write("num_carreras\n")
         g.write("0")
 
         f.close()
@@ -46,7 +46,7 @@ if not pathlib.Path("datos.csv").exists():
         primer_corrida = True
 
 df = pd.read_csv(file,  index_col=0)
-conteo = pd.read_csv("Conteo.csv")
+conteo = pd.read_csv("num_carreras.txt")
 
 def crear_registro(nombre):
     with open(nombre+".csv", 'x+') as k:
@@ -77,10 +77,18 @@ def generar_velocidades(n_carreras, n_pilotos):
 
 
 if primer_corrida:
+    global carrera
     print("Warning: Primera ejecución del programa detectada!")
 
     carrera: int = try_int("Ingrese el número de carreras que va a registrar por piloto: ")
-    conteo.loc[conteo['num_carreras']] = carrera
+
+    with open("num_carreras.txt", "w") as f:
+        f.truncate(0)
+
+        f.write(str(carrera))
+
+        f.close()
+
 
     num_pilotos = input("Ingrese el número de pilotos que desea generar aleatoriamente [default: rand]: ")
 
@@ -115,12 +123,13 @@ if primer_corrida:
             }
             , index=[i+1])]
         )
+
         df_piloto.to_csv(nombre + ".csv")
         df.to_csv("datos.csv")
 
 opcion = -1
 
-while opcion != 6:
+while opcion != 4:
     print("Menu de opciones: \n"
           "    1. Consultar estadísticas\n"
           "    2. Agregar datos de nueva carrera\n"
@@ -141,5 +150,10 @@ while opcion != 6:
             df_piloto = pd.read_csv(nombre + ".csv", index_col=0)
             print(df_piloto)
 
+            fig, ax= plt.subplots()
+            posiciones = df_piloto["Posisión"].to_list()
+            carreras = list(range(1, carrera+1))
+            ax.plot(carreras, posiciones)
+            ax.set_title('Gráfica de velocidad', loc='center', fontdict = {'fontsize':14, 'fontweight':'bold', 'color':'tab:blue'})
+            plt.show()
 
-fig, ax = plt.subplots()
