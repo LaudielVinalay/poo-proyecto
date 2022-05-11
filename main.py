@@ -16,39 +16,6 @@ def try_int(msg):
         print("Error: Ingrese una valor válido!")
 
 
-def get_pilotos():
-    set(df["Piloto"].values)
-
-
-def agregar_carrera():
-    nombre_piloto = input("Ingrese el nombre del piloto: ")
-
-    if nombre_piloto not in get_pilotos():
-        print("Error: El piloto no existe")
-
-
-file = input("Ingrese el nombre del archivo principal [default: datos.csv]: ")
-
-if file.replace("\n", "").replace(" ", "") == "":
-    file = "datos.csv"
-
-df = None
-primer_execution = False
-
-if not pathlib.Path("datos.csv").exists():
-    with open("datos.csv", "x+") as f, open("num_carreras.txt", "x+") as g:
-        f.write("Piloto")
-
-        g.write("0")
-
-        f.close()
-        g.close()
-        primer_execution = True
-
-df = pd.read_csv(file, index_col=0)
-conteo = pd.read_csv("num_carreras.txt")
-
-
 def crear_registro(nombre_piloto):
     with open(nombre_piloto + ".csv", 'x+') as k:
         k.write("Posición,Velocidad Media,Velocidad Max")
@@ -75,65 +42,6 @@ def generar_velocidades(n_carreras, n_pilotos):
         velocidades_cada_carrera.append(velocidades_de_carrera)
 
     return velocidades_cada_carrera
-
-
-if primer_execution:
-    print("Warning: Primera ejecución del programa detectada!")
-
-    carrera = try_int("Ingrese el número de carreras que va a registrar por piloto: ")
-
-    with open("num_carreras.txt", "w") as f:
-        f.truncate(0)
-
-        f.write(str(carrera))
-
-        f.close()
-
-    num_pilotos = input("Ingrese el número de pilotos que desea generar aleatoriamente [default: rand]: ")
-
-    if num_pilotos.isalnum():
-        num_pilotos = int(num_pilotos)
-    else:
-        num_pilotos = random.randint(5, 20)
-
-    posiciones_carreras = generar_posiciones(carrera, num_pilotos)
-    velocidades_carreras = generar_velocidades(carrera, num_pilotos)
-    for i in range(num_pilotos):
-
-        nombre = names.get_full_name()
-        df_piloto = crear_registro(nombre)
-
-        promedio_velocidad_carrera = 0
-        promedio_position = 0
-        for j in range(carrera):
-            promedio_position += posiciones_carreras[j][i]
-            promedio_velocidad_carrera += velocidades_carreras[j][posiciones_carreras[j][i] - 1]
-            df_piloto = pd.concat([df_piloto, pd.DataFrame({
-                "Velocidad Media": [velocidades_carreras[j][posiciones_carreras[j][i] - 1]],
-                "Posición": [posiciones_carreras[j][i]],
-                "Velocidad Max": [velocidades_carreras[j][posiciones_carreras[j][i] - 1] + random.randrange(10, 25)]
-            }, index=[j + 1])])
-
-        df = pd.concat(
-            [
-                df,
-                pd.DataFrame(
-                    {
-                        "Piloto": [nombre],
-                        "Pos Promedio": promedio_position / carrera,
-                        "Vel Promedio": promedio_velocidad_carrera / carrera
-                    }, index=[i + 1])
-            ]
-        )
-
-        df_piloto.to_csv(nombre + ".csv")
-        df.to_csv("datos.csv")
-
-option = -1
-
-with open("num_carreras.txt", "r") as f:
-    string = f.read()
-    carrera = int(string)
 
 
 def cargar_piloto(nombre_piloto):
@@ -177,61 +85,144 @@ def pedir_stat(msg, df_):
             print("Ingresa el nombre de una estadística válida")
 
 
-while option != 4:
-    print("Menu de opciones: \n"
-          "    1. Consultar estadísticas\n"
-          "    2. Agregar datos de nueva carrera\n"
-          "    3. Eliminar todo\n"
-          "    4. Salir\n"
-          )
+def main():
+    file = input("Ingrese el nombre del archivo principal [default: datos.csv]: ")
 
-    option = try_int("Ingrese una opción: ")
+    if file.replace("\n", "").replace(" ", "") == "":
+        file = "datos.csv"
 
-    if option == 1:
-        print(df)
+    primer_execution = False
 
-        print("Selección de pilotos:\n"
-              "Ingrese el nombre de los pilotos que desee o 'terminar' para continuar")
+    if not pathlib.Path("datos.csv").exists():
+        with open("datos.csv", "x+") as f, open("num_carreras.txt", "x+") as g:
+            f.write("Piloto")
 
-        df_pilotos = []
-        while True:
-            piloto = pedir_piloto("Ingrese el nombre o id del piloto: ", df)
+            g.write("0")
 
-            if piloto == "terminar":
-                break
+            f.close()
+            g.close()
+            primer_execution = True
 
-            df_pilotos += [(piloto, cargar_piloto(piloto))]
+    df = pd.read_csv(file, index_col=0)
+    conteo = pd.read_csv("num_carreras.txt")
 
-        if not df_pilotos:
-            exit(0)
+    if primer_execution:
+        print("Warning: Primera ejecución del programa detectada!")
 
-        for piloto in df_pilotos:
-            print(piloto[0])
-            print(piloto[1])
+        carrera = try_int("Ingrese el número de carreras que va a registrar por piloto: ")
 
-        if input("Deseas graficar una estadística en específico: [si|no]").lower() == "si":
-            print("Selección de stats:\n"
-                  "Ingrese el nombre de las estadísticas que desee graficar o 'terminar' para continuar")
+        with open("num_carreras.txt", "w") as f:
+            f.truncate(0)
 
-            df_stats = []
+            f.write(str(carrera))
+
+            f.close()
+
+        num_pilotos = input("Ingrese el número de pilotos que desea generar aleatoriamente [default: rand]: ")
+
+        if num_pilotos.isalnum():
+            num_pilotos = int(num_pilotos)
+        else:
+            num_pilotos = random.randint(5, 20)
+
+        posiciones_carreras = generar_posiciones(carrera, num_pilotos)
+        velocidades_carreras = generar_velocidades(carrera, num_pilotos)
+        for i in range(num_pilotos):
+
+            nombre = names.get_full_name()
+            df_piloto = crear_registro(nombre)
+
+            promedio_velocidad_carrera = 0
+            promedio_position = 0
+            for j in range(carrera):
+                promedio_position += posiciones_carreras[j][i]
+                promedio_velocidad_carrera += velocidades_carreras[j][posiciones_carreras[j][i] - 1]
+                df_piloto = pd.concat([df_piloto, pd.DataFrame({
+                    "Velocidad Media": [velocidades_carreras[j][posiciones_carreras[j][i] - 1]],
+                    "Posición": [posiciones_carreras[j][i]],
+                    "Velocidad Max": [velocidades_carreras[j][posiciones_carreras[j][i] - 1] + random.randrange(10, 25)]
+                }, index=[j + 1])])
+
+            df = pd.concat(
+                [
+                    df,
+                    pd.DataFrame(
+                        {
+                            "Piloto": [nombre],
+                            "Pos Promedio": promedio_position / carrera,
+                            "Vel Promedio": promedio_velocidad_carrera / carrera
+                        }, index=[i + 1])
+                ]
+            )
+
+            df_piloto.to_csv(nombre + ".csv")
+            df.to_csv("datos.csv")
+
+    with open("num_carreras.txt", "r") as f:
+        string = f.read()
+        carrera = int(string)
+
+    option = 0
+    while option != 4:
+        print("Menu de opciones: \n"
+              "    1. Consultar estadísticas\n"
+              "    2. Agregar datos de nueva carrera\n"
+              "    3. Eliminar todo\n"
+              "    4. Salir\n"
+              )
+
+        option = try_int("Ingrese una opción: ")
+
+        if option == 1:
+            print(df)
+
+            print("Selección de pilotos:\n"
+                  "Ingrese el nombre de los pilotos que desee o 'terminar' para continuar")
+
+            df_pilotos = []
             while True:
-                stat = pedir_stat("Ingrese una estadística a graficar: ", df_pilotos[0][1])
+                piloto = pedir_piloto("Ingrese el nombre o id del piloto: ", df)
 
-                if stat == "terminar":
+                if piloto == "terminar":
                     break
 
-                df_stats += [stat]
+                df_pilotos += [(piloto, cargar_piloto(piloto))]
 
-            carreras = list(range(1, carrera + 1))
-
-            if not df_stats:
+            if not df_pilotos:
                 exit(0)
 
-            for stat in df_stats:
-                fig, ax = plt.subplots()
-                for piloto in df_pilotos:
-                    ax.plot(carreras, piloto[1][stat].to_list(), label=piloto[0])
+            for piloto in df_pilotos:
+                print(piloto[0])
+                print(piloto[1])
 
-                ax.set_title(stat, loc='center', fontdict={'fontsize': 14, 'fontweight': 'bold', 'color': 'tab:blue'})
-                plt.legend()
-                plt.show()
+            if input("Deseas graficar una estadística en específico: [si|no]").lower() == "si":
+                print("Selección de stats:\n"
+                      "Ingrese el nombre de las estadísticas que desee graficar o 'terminar' para continuar")
+
+                df_stats = []
+                while True:
+                    stat = pedir_stat("Ingrese una estadística a graficar: ", df_pilotos[0][1])
+
+                    if stat == "terminar":
+                        break
+
+                    df_stats += [stat]
+
+                carreras = list(range(1, carrera + 1))
+
+                if not df_stats:
+                    exit(0)
+
+                for stat in df_stats:
+                    fig, ax = plt.subplots()
+                    for piloto in df_pilotos:
+                        ax.plot(carreras, piloto[1][stat].to_list(), label=piloto[0])
+
+                    ax.set_title(stat, loc='center',
+                                 fontdict={'fontsize': 14, 'fontweight': 'bold', 'color': 'tab:blue'})
+                    plt.legend()
+                    plt.show()
+
+
+if __name__ == "__main__":
+    main()
