@@ -1,3 +1,4 @@
 *.csv
 .idea
 venv
+num_carreras.txt
