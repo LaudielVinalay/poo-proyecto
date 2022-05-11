@@ -91,20 +91,14 @@ def main():
     if file.replace("\n", "").replace(" ", "") == "":
         file = "datos.csv"
 
-    primer_execution = False
-
     if not pathlib.Path("datos.csv").exists():
-        with open("datos.csv", "x+") as f, open("num_carreras.txt", "x+") as g:
+        with open("datos.csv", "x+") as f:
             f.write("Piloto")
 
-            g.write("0")
-
             f.close()
-            g.close()
-            primer_execution = True
 
     df = pd.read_csv(file, index_col=0)
-    conteo = pd.read_csv("num_carreras.txt")
+    primer_execution = df.empty
 
     if primer_execution:
         print("Warning: Primera ejecución del programa detectada!")
@@ -164,12 +158,13 @@ def main():
 
     option = 0
     while option != 4:
-        print("Menu de opciones: \n"
-              "    1. Consultar estadísticas\n"
-              "    2. Agregar datos de nueva carrera\n"
-              "    3. Eliminar todo\n"
-              "    4. Salir\n"
-              )
+        print(
+            "Menu de opciones: \n"
+            "    1. Consultar estadísticas\n"
+            "    2. Agregar datos de nueva carrera\n"
+            "    3. Eliminar todo\n"
+            "    4. Salir\n"
+        )
 
         option = try_int("Ingrese una opción: ")
 
@@ -189,7 +184,7 @@ def main():
                 df_pilotos += [(piloto, cargar_piloto(piloto))]
 
             if not df_pilotos:
-                exit(0)
+                continue
 
             for piloto in df_pilotos:
                 print(piloto[0])
@@ -211,7 +206,7 @@ def main():
                 carreras = list(range(1, carrera + 1))
 
                 if not df_stats:
-                    exit(0)
+                    continue
 
                 for stat in df_stats:
                     fig, ax = plt.subplots()
@@ -222,6 +217,17 @@ def main():
                                  fontdict={'fontsize': 14, 'fontweight': 'bold', 'color': 'tab:blue'})
                     plt.legend()
                     plt.show()
+        if option == 3:
+            import os
+            test = os.listdir(".")
+
+            for item in test:
+                if item.endswith(".csv"):
+                    os.remove(os.path.join(".", item))
+
+            print("Todos los datos han sido eliminados")
+            print("Volviendo a ejecutar el programa...")
+            main()
 
 
 if __name__ == "__main__":
