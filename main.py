@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 random.seed(250)
 
+
 def try_int(msg):
     try:
         return int(input(msg))
@@ -32,7 +33,7 @@ if file.replace("\n", "").replace(" ", "") == "":
     file = "datos.csv"
 
 df = None
-primer_ejecucion = False
+primer_execution = False
 
 if not pathlib.Path("datos.csv").exists():
     with open("datos.csv", "x+") as f, open("num_carreras.txt", "x+") as g:
@@ -42,7 +43,7 @@ if not pathlib.Path("datos.csv").exists():
 
         f.close()
         g.close()
-        primer_ejecucion = True
+        primer_execution = True
 
 df = pd.read_csv(file, index_col=0)
 conteo = pd.read_csv("num_carreras.txt")
@@ -76,7 +77,7 @@ def generar_velocidades(n_carreras, n_pilotos):
     return velocidades_cada_carrera
 
 
-if primer_ejecucion:
+if primer_execution:
     print("Warning: Primera ejecución del programa detectada!")
 
     carrera = try_int("Ingrese el número de carreras que va a registrar por piloto: ")
@@ -103,9 +104,9 @@ if primer_ejecucion:
         df_piloto = crear_registro(nombre)
 
         promedio_velocidad_carrera = 0
-        promedio_posicion = 0
+        promedio_position = 0
         for j in range(carrera):
-            promedio_posicion += posiciones_carreras[j][i]
+            promedio_position += posiciones_carreras[j][i]
             promedio_velocidad_carrera += velocidades_carreras[j][posiciones_carreras[j][i] - 1]
             df_piloto = pd.concat([df_piloto, pd.DataFrame({
                 "Velocidad Media": [velocidades_carreras[j][posiciones_carreras[j][i] - 1]],
@@ -119,16 +120,16 @@ if primer_ejecucion:
                 pd.DataFrame(
                     {
                         "Piloto": [nombre],
-                        "Pos Promedio": promedio_posicion / carrera,
+                        "Pos Promedio": promedio_position / carrera,
                         "Vel Promedio": promedio_velocidad_carrera / carrera
                     }, index=[i + 1])
-             ]
+            ]
         )
 
         df_piloto.to_csv(nombre + ".csv")
         df.to_csv("datos.csv")
 
-opcion = -1
+option = -1
 
 with open("num_carreras.txt", "r") as f:
     string = f.read()
@@ -176,7 +177,7 @@ def pedir_stat(msg, df_):
             print("Ingresa el nombre de una estadística válida")
 
 
-while opcion != 4:
+while option != 4:
     print("Menu de opciones: \n"
           "    1. Consultar estadísticas\n"
           "    2. Agregar datos de nueva carrera\n"
@@ -184,9 +185,9 @@ while opcion != 4:
           "    4. Salir\n"
           )
 
-    opcion = try_int("Ingrese una opción: ")
+    option = try_int("Ingrese una opción: ")
 
-    if opcion == 1:
+    if option == 1:
         print(df)
 
         print("Selección de pilotos:\n"
