@@ -143,3 +143,8 @@ while opcion != 6:
 
 
 fig, ax = plt.subplots()
+velocidades=[]
+carreras=[]
+ax.plot(velocidades,carreras)
+ax.set_title('Gráfica de velocidad promedio', loc='center', fontdict = {'fontsize':14, 'fontweight':'bold', 'color':'tab:blue'})
+plt.show()
